@@ -1,0 +1,14 @@
+F:\LapTrinhDNU\Backend\Bai4\Bai4\bin\Debug\net9.0\Bai4.exe
+F:\LapTrinhDNU\Backend\Bai4\Bai4\bin\Debug\net9.0\Bai4.deps.json
+F:\LapTrinhDNU\Backend\Bai4\Bai4\bin\Debug\net9.0\Bai4.runtimeconfig.json
+F:\LapTrinhDNU\Backend\Bai4\Bai4\bin\Debug\net9.0\Bai4.dll
+F:\LapTrinhDNU\Backend\Bai4\Bai4\bin\Debug\net9.0\Bai4.pdb
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\Bai4.GeneratedMSBuildEditorConfig.editorconfig
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\Bai4.AssemblyInfoInputs.cache
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\Bai4.AssemblyInfo.cs
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\Bai4.csproj.CoreCompileInputs.cache
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\Bai4.dll
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\refint\Bai4.dll
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\Bai4.pdb
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\Bai4.genruntimeconfig.cache
+F:\LapTrinhDNU\Backend\Bai4\Bai4\obj\Debug\net9.0\ref\Bai4.dll

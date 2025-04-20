@@ -1,0 +1,14 @@
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\bin\Debug\net9.0\Lab1.1.exe
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\bin\Debug\net9.0\Lab1.1.deps.json
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\bin\Debug\net9.0\Lab1.1.runtimeconfig.json
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\bin\Debug\net9.0\Lab1.1.dll
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\bin\Debug\net9.0\Lab1.1.pdb
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\Lab1.1.GeneratedMSBuildEditorConfig.editorconfig
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\Lab1.1.AssemblyInfoInputs.cache
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\Lab1.1.AssemblyInfo.cs
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\Lab1.1.csproj.CoreCompileInputs.cache
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\Lab1.1.dll
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\refint\Lab1.1.dll
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\Lab1.1.pdb
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\Lab1.1.genruntimeconfig.cache
+F:\LapTrinhDNU\Backend\Lab1.1\Lab1.1\obj\Debug\net9.0\ref\Lab1.1.dll

@@ -1,0 +1,14 @@
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\bin\Debug\net9.0\Bai1Lab1.5.exe
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\bin\Debug\net9.0\Bai1Lab1.5.deps.json
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\bin\Debug\net9.0\Bai1Lab1.5.runtimeconfig.json
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\bin\Debug\net9.0\Bai1Lab1.5.dll
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\bin\Debug\net9.0\Bai1Lab1.5.pdb
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\Bai1Lab1.5.GeneratedMSBuildEditorConfig.editorconfig
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\Bai1Lab1.5.AssemblyInfoInputs.cache
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\Bai1Lab1.5.AssemblyInfo.cs
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\Bai1Lab1.5.csproj.CoreCompileInputs.cache
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\Bai1Lab1.5.dll
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\refint\Bai1Lab1.5.dll
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\Bai1Lab1.5.pdb
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\Bai1Lab1.5.genruntimeconfig.cache
+F:\LapTrinhDNU\Backend\Lab1.5\Lab1.5\obj\Debug\net9.0\ref\Bai1Lab1.5.dll
