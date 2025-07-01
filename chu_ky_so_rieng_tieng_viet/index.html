@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Gửi/Nhận Hợp đồng - Full Crypto</title>
+    <!-- Thư viện CryptoJS để hỗ trợ TripleDES và SHA512 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .panel {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 45%;
+            min-width: 450px;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            width: 100%;
+            text-align: center;
+        }
+        h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        textarea, input[type="file"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            margin-top: 5px;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+        .log-area {
+            background-color: #2b2b2b;
+            color: #a9b7c6;
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-top: 15px;
+            flex-grow: 1;
+        }
+        .message-area, .error-area {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none; /* Hidden by default */
+        }
+        .message-area {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error-area {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hệ thống Gửi/Nhận Hợp đồng với Chữ ký số (Thực thi Mật mã)</h1>
+
+    <div class="container">
+        <!-- Panel Người gửi -->
+        <div class="panel">
+            <h2>Người gửi</h2>
+            <label for="senderContractFile">Chọn file hợp đồng (.txt):</label>
+            <input type="file" id="senderContractFile" accept=".txt" onchange="enableSendButton()">
+            <button id="sendBtn" onclick="sendContract()" disabled>1. Gửi Yêu cầu</button>
+            <div class="log-area" id="senderLog"></div>
+            <div class="message-area" id="senderMessage"></div>
+            <div class="error-area" id="senderError"></div>
+        </div>
+
+        <!-- Panel Người nhận -->
+        <div class="panel">
+            <h2>Người nhận</h2>
+            <p><i>Chờ yêu cầu từ Người gửi...</i></p>
+            <div class="button-group" id="handshake-buttons" style="display:none;">
+                <button id="acceptBtn" onclick="acceptTransfer()" style="background-color: #28a745;">2. Chấp nhận</button>
+                <button id="declineBtn" onclick="declineTransfer()" style="background-color: #dc3545;">2. Từ chối</button>
+            </div>
+            <div class="log-area" id="receiverLog"></div>
+            <div class="message-area" id="receiverMessage"></div>
+            <div class="error-area" id="receiverError"></div>
+            <div style="margin-top: 20px;">
+                <label>Nội dung hợp đồng đã nhận:</label>
+                <textarea id="receivedContractContent" rows="8" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CÀI ĐẶT MÔI TRƯỜNG ---
+        const sendBtn = document.getElementById('sendBtn');
+        const handshakeButtons = document.getElementById('handshake-buttons');
+        const receiverInstruction = document.querySelector('.panel:nth-child(2) p');
+
+        let senderKeys, receiverKeys;
+        let simulatedPacket = null;
+        const textEncoder = new TextEncoder();
+        const textDecoder = new TextDecoder();
+
+        // --- CÁC HÀM TIỆN ÍCH MẬT MÃ ---
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binary_string = window.atob(base64);
+            const len = binary_string.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        
+        function wordArrayToUint8Array(wordArray) {
+            const l = wordArray.sigBytes;
+            const words = wordArray.words;
+            const result = new Uint8Array(l);
+            var i = 0, j = 0;
+            while (true) {
+                if (i === l) break;
+                var w = words[j++];
+                result[i++] = (w >>> 24) & 0xff;
+                if (i === l) break;
+                result[i++] = (w >>> 16) & 0xff;
+                if (i === l) break;
+                result[i++] = (w >>> 8) & 0xff;
+                if (i === l) break;
+                result[i++] = (w & 0xff);
+            }
+            return result;
+        }
+
+        async function generateCryptoKeys() {
+            const signKeys = await window.crypto.subtle.generateKey(
+                {
+                    name: "RSA-PSS",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+                    hash: "SHA-512",
+                },
+                true,
+                ["sign", "verify"]
+            );
+            const encryptKeys = await window.crypto.subtle.generateKey(
+                 {
+                    name: "RSA-OAEP",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+                    hash: "SHA-256", 
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+            return { signKeys, encryptKeys };
+        }
+
+        // --- CÁC HÀM TIỆN ÍCH GIAO DIỆN ---
+        function log(target, message) {
+            const logElement = document.getElementById(target);
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function showMessage(targetId, message) {
+            const el = document.getElementById(targetId);
+            el.innerText = message;
+            el.style.display = 'block';
+        }
+
+        function showError(targetId, message) {
+            const el = document.getElementById(targetId);
+            el.innerText = message;
+            el.style.display = 'block';
+        }
+        
+        function clearStatusMessages() {
+            ['senderMessage', 'senderError', 'receiverMessage', 'receiverError'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+        }
+        
+        // --- LOGIC CHÍNH ---
+
+        window.onload = async () => {
+            log('senderLog', 'Đang tạo các cặp khóa RSA cho Người gửi...');
+            senderKeys = await generateCryptoKeys();
+            log('senderLog', 'Đã tạo khóa cho Người gửi.');
+            
+            log('receiverLog', 'Đang tạo các cặp khóa RSA cho Người nhận...');
+            receiverKeys = await generateCryptoKeys();
+            log('receiverLog', 'Đã tạo khóa cho Người nhận.');
+        };
+        
+        // Kích hoạt nút gửi khi người dùng đã chọn file
+        function enableSendButton() {
+            const fileInput = document.getElementById('senderContractFile');
+            sendBtn.disabled = !fileInput.files[0];
+        }
+
+        // Bước 1: Người gửi gửi yêu cầu
+        async function sendContract() {
+            clearStatusMessages();
+            document.getElementById('senderLog').innerHTML = '';
+            const fileInput = document.getElementById('senderContractFile');
+            if (!fileInput.files[0]) {
+                showError('senderError', "Vui lòng chọn file hợp đồng.");
+                return;
+            }
+
+            try {
+                log('senderLog', "--- BẮT ĐẦU QUÁ TRÌNH GỬI YÊU CẦU ---");
+                log('senderLog', "[Handshake] Gửi 'Hello!'...");
+                
+                const sessionKey = CryptoJS.lib.WordArray.random(24);
+                log('senderLog', "[Key] Đã tạo SessionKey cho TripleDES.");
+                
+                const sessionKeyBytes = wordArrayToUint8Array(sessionKey);
+                const encryptedSessionKey = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, receiverKeys.encryptKeys.publicKey, sessionKeyBytes);
+                log('senderLog', "[Key] Đã mã hóa SessionKey bằng RSA.");
+
+                const fileContent = await fileInput.files[0].text();
+                const metadata = `${fileInput.files[0].name}|${new Date().toISOString()}|${fileInput.files[0].size}`;
+                const metadataBytes = textEncoder.encode(metadata);
+                
+                const rsaPssParams = { name: "RSA-PSS", saltLength: 64 };
+                const metadataSignature = await window.crypto.subtle.sign(rsaPssParams, senderKeys.signKeys.privateKey, metadataBytes);
+                log('senderLog', `[Metadata] Đã ký metadata: ${metadata}`);
+                
+                const numParts = 3;
+                const partSize = Math.ceil(fileContent.length / numParts);
+                const parts = [];
+                for(let i = 0; i < numParts; i++) {
+                    const start = i * partSize;
+                    const end = start + partSize;
+                    if(start < fileContent.length) { parts.push(fileContent.substring(start, end)); }
+                }
+                log('senderLog', `[File] Đã chia file thành ${parts.length} phần.`);
+                
+                const encryptedParts = [];
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    const iv = CryptoJS.lib.WordArray.random(8);
+                    const encrypted = CryptoJS.TripleDES.encrypt(part, sessionKey, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+                    
+                    const ivWords = CryptoJS.enc.Hex.parse(iv.toString());
+                    const cipherWords = CryptoJS.enc.Base64.parse(encrypted.toString());
+                    const payloadToHash = ivWords.concat(cipherWords);
+                    
+                    const hash = CryptoJS.SHA512(payloadToHash);
+                    const hashBytes = base64ToArrayBuffer(CryptoJS.enc.Base64.stringify(hash));
+                    
+                    const signature = await window.crypto.subtle.sign(rsaPssParams, senderKeys.signKeys.privateKey, hashBytes);
+                    
+                    encryptedParts.push({
+                        iv: CryptoJS.enc.Base64.stringify(iv), cipher: encrypted.toString(),
+                        hash: hash.toString(CryptoJS.enc.Hex), sig: arrayBufferToBase64(signature)
+                    });
+                    log('senderLog', `  - Đã mã hóa và ký phần ${i + 1}.`);
+                }
+
+                // Lưu gói tin mô phỏng
+                simulatedPacket = {
+                    metadata: metadata, metadata_sig: arrayBufferToBase64(metadataSignature),
+                    encrypted_session_key: arrayBufferToBase64(encryptedSessionKey), parts: encryptedParts,
+                    // Lưu lại khóa phiên và nội dung gốc để mô phỏng giải mã
+                    _sessionKey: sessionKey, _originalContent: fileContent 
+                };
+
+                log('senderLog', "[Hoàn thành] Đã tạo gói tin. Đã gửi yêu cầu đến Người nhận.");
+                showMessage('senderMessage', "Đã gửi yêu cầu thành công. Vui lòng chờ Người nhận phản hồi.");
+                sendBtn.disabled = true;
+
+                // Kích hoạt panel của Người nhận
+                receiverInstruction.style.display = 'none';
+                handshakeButtons.style.display = 'flex';
+                log('receiverLog', "[Handshake] Đã nhận được yêu cầu gửi file. Vui lòng Chấp nhận hoặc Từ chối.");
+
+            } catch (error) {
+                console.error("Lỗi bên gửi:", error);
+                showError('senderError', `Lỗi: ${error.message}`);
+            }
+        }
+
+        // Bước 2: Người nhận phản hồi
+        async function acceptTransfer() {
+            clearStatusMessages();
+            log('receiverLog', "[Handshake] Đã Chấp nhận yêu cầu. Bắt đầu xử lý gói tin...");
+            log('senderLog', "[Handshake] Người nhận đã chấp nhận. Bắt đầu truyền dữ liệu (mô phỏng)...");
+            handshakeButtons.style.display = 'none';
+            await processContract();
+        }
+
+        function declineTransfer() {
+            clearStatusMessages();
+            log('receiverLog', "[Handshake] Đã Từ chối yêu cầu. Phiên làm việc bị hủy.");
+            log('senderLog', "[LỖI] Người nhận đã từ chối yêu cầu. Phiên làm việc bị hủy.");
+            showError('receiverMessage', 'Bạn đã từ chối. Phiên làm việc kết thúc.');
+            showError('senderMessage', 'Người nhận đã từ chối yêu cầu.');
+            resetSimulation();
+        }
+
+        // Bước 3: Người nhận xử lý gói tin sau khi chấp nhận
+        async function processContract() {
+            if (!simulatedPacket) {
+                showError('receiverError', "Lỗi: Không có gói tin nào để xử lý.");
+                return;
+            }
+
+            try {
+                log('receiverLog', "--- BẮT ĐẦU QUÁ TRÌNH NHẬN & XÁC MINH ---");
+
+                const metadataBytes = textEncoder.encode(simulatedPacket.metadata);
+                const metadataSigBytes = base64ToArrayBuffer(simulatedPacket.metadata_sig);
+                
+                const rsaPssParams = { name: "RSA-PSS", saltLength: 64 };
+                const isMetadataValid = await window.crypto.subtle.verify(rsaPssParams, senderKeys.signKeys.publicKey, metadataSigBytes, metadataBytes);
+                if (!isMetadataValid) throw new Error("Chữ ký metadata không hợp lệ!");
+                log('receiverLog', "[Metadata] Xác thực chữ ký metadata thành công.");
+
+                const decryptedSessionKeyBuffer = await window.crypto.subtle.decrypt({ name: "RSA-OAEP" }, receiverKeys.encryptKeys.privateKey, base64ToArrayBuffer(simulatedPacket.encrypted_session_key));
+                const sessionKey = CryptoJS.lib.WordArray.create(decryptedSessionKeyBuffer);
+                log('receiverLog', "[Key] Giải mã SessionKey thành công.");
+
+                let combinedContent = "";
+                for (let i = 0; i < simulatedPacket.parts.length; i++) {
+                    const part = simulatedPacket.parts[i];
+                    log('receiverLog', `  - Xử lý phần ${i + 1}...`);
+
+                    const ivWords = CryptoJS.enc.Base64.parse(part.iv);
+                    const cipherWords = CryptoJS.enc.Base64.parse(part.cipher);
+                    const payloadToHash = ivWords.concat(cipherWords);
+                    const calculatedHash = CryptoJS.SHA512(payloadToHash).toString(CryptoJS.enc.Hex);
+
+                    if (calculatedHash !== part.hash) throw new Error(`Hash phần ${i+1} không khớp!`);
+                    log('receiverLog', `  - Toàn vẹn dữ liệu OK (hash khớp).`);
+
+                    const hashBytes = base64ToArrayBuffer(CryptoJS.enc.Base64.stringify(CryptoJS.enc.Hex.parse(part.hash)));
+                    const sigBytes = base64ToArrayBuffer(part.sig);
+                    
+                    const isSigValid = await window.crypto.subtle.verify(rsaPssParams, senderKeys.signKeys.publicKey, sigBytes, hashBytes);
+                    if (!isSigValid) throw new Error(`Chữ ký phần ${i+1} không hợp lệ!`);
+                    log('receiverLog', `  - Xác thực người gửi OK (chữ ký hợp lệ).`);
+                    
+                    const decrypted = CryptoJS.TripleDES.decrypt({ ciphertext: cipherWords }, sessionKey, { iv: ivWords, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+                    combinedContent += decrypted.toString(CryptoJS.enc.Utf8);
+                    log('receiverLog', `  - Giải mã phần ${i + 1} thành công.`);
+                }
+
+                document.getElementById('receivedContractContent').value = combinedContent;
+                log('receiverLog', `\n[Hoàn thành] Đã giải mã và ghép hợp đồng thành công. Gửi ACK.`);
+                showMessage('receiverMessage', "Hợp đồng đã được nhận và xử lý thành công!");
+                
+            } catch (error) {
+                console.error("Lỗi bên nhận:", error);
+                showError('receiverError', `Lỗi: ${error.message}. Gửi NACK.`);
+            } finally {
+                 resetSimulation();
+            }
+        }
+        
+        function resetSimulation() {
+            handshakeButtons.style.display = 'none';
+            receiverInstruction.style.display = 'block';
+            sendBtn.disabled = true;
+            document.getElementById('senderContractFile').value = '';
+            simulatedPacket = null;
+        }
+
+    </script>
+</body>
+</html>
